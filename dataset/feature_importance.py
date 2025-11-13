@@ -129,27 +129,6 @@ print("\n=== TOP 20 FEATURES (Mutual Information) ===")
 print(mi_results.head(20))
 
 
-# 4) MUTUAL INFORMATION
-
-print("\nComputing Mutual Information scores")
-
-X_mi = X.copy()
-
-# Factorize categoricals (convert to integer codes)
-for c in cat_cols:
-    X_mi[c], _ = pd.factorize(X_mi[c])
-
-mi_scores = mutual_info_classif(X_mi, y, random_state=42)
-
-mi_results = (
-    pd.DataFrame({"feature": X_mi.columns, "importance": mi_scores})
-      .sort_values("importance", ascending=False)
-)
-
-print("\n=== TOP 20 FEATURES (Mutual Information) ===")
-print(mi_results.head(20))
-
-
 # 5) SAVE RESULTS
 
 rf_results.to_csv("feature_importance_random_forest.csv", index=False)
