@@ -13,8 +13,6 @@ import matplotlib.pyplot as plt
 
 # 1) LOAD THE CLEANED DATASET
 
-# Figure out project root:
-
 cwd = os.getcwd()
 if os.path.basename(cwd) == "dataset":
     PROJECT_ROOT = os.path.dirname(cwd)
