@@ -494,3 +494,53 @@ df = df.drop_duplicates(keep='first')
 
 print(f"Dropped duplicate rows. "
       f"Dataset: {df.shape[0]:,} rows × {df.shape[1]} columns")
+
+
+# ------------------------------------------------------
+# 10. GET MODE OR FIRST VALUE FOR COLUMN FOR EACH ACCIDENT
+# ------------------------------------------------------
+
+def mode_or_first(x):
+    """
+    It returns the mode of a pandas Series.
+    If there is a tie, it returns the first value in the Series.
+    """
+    modes = x.mode()
+    if len(modes) == 1:
+        return modes.iloc[0]
+    else:
+        # Where the mode is tie, return the first value
+        return x.iloc[0]
+
+agg_dict = {
+    "date": mode_or_first,
+    "day_of_week": mode_or_first,
+    "hour": mode_or_first,
+    "road_category": mode_or_first,
+    "road_layout": mode_or_first,
+    "num_lanes": "max",
+    "reserved_lane": mode_or_first,
+    "road_profile": mode_or_first,
+    "road_shape": mode_or_first,
+    "surface_condition": mode_or_first,
+    "infrastructure": mode_or_first,
+    "road_location": mode_or_first,
+    "speed_limit": "max",
+    "injury_severity": "max",
+    "users_involved": "max",
+    "light_conditions": mode_or_first,
+    "department": mode_or_first,
+    "urban_area": mode_or_first,
+    "intersection_type": mode_or_first,
+    "weather": mode_or_first,
+    "collision_type": mode_or_first,
+    "latitude": mode_or_first,
+    "longitude": mode_or_first
+}
+
+df = df.groupby("accident_number").agg(agg_dict).reset_index()
+
+print(f'All count of `accident_number`   : {len(df.accident_number)}')
+print(f'Unique count of `accident_number`: {len(df.accident_number.unique())}')
+
+assert len(df) == len(df.accident_number.unique()), "There are duplicate accident_number"
