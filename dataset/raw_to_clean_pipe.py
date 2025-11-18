@@ -2,6 +2,8 @@ import os
 import pandas as pd
 import numpy as np
 
+from sklearn.preprocessing import StandardScaler
+
 pd.set_option('display.max_columns', None)
 
 import warnings
@@ -412,6 +414,19 @@ df['department'] = df['department'].astype(int)
 # Keep only IDF rows
 df = df[df['department'].isin(idf_departments)]
 
+department_mapping = {
+    75: "Paris",
+    77: "Seine-et-Marne",
+    78: "Yvelines",
+    91: "Essonne",
+    92: "Hauts-de-Seine",
+    93: "Seine-Saint-Denis",
+    94: "Val-de-Marne",
+    95: "Val-d'Oise"
+}
+
+df['department'] = df['department'].map(department_mapping)
+
 
 # Rename value of urban_area column
 urban_area_mapping = {
@@ -544,3 +559,61 @@ print(f'All count of `accident_number`   : {len(df.accident_number)}')
 print(f'Unique count of `accident_number`: {len(df.accident_number.unique())}')
 
 assert len(df) == len(df.accident_number.unique()), "There are duplicate accident_number"
+
+
+# ------------------------------------------------------
+# 11A. ENCODE CAT COLS
+# ------------------------------------------------------
+
+clean_df = df.copy()
+
+# Drop accident_number column, don't need this anymore
+clean_df.drop(['accident_number'], axis = 1, inplace = True)
+
+# Get cateogrical columns
+cat_cols = clean_df.select_dtypes(include=["object"]).columns.tolist()
+
+# Encode columns
+df_encoded = pd.get_dummies(clean_df, columns=cat_cols, drop_first=True)
+
+
+# ------------------------------------------------------
+# 11B. ENCODE NUM COLS
+# ------------------------------------------------------
+
+# Get numerical columns and drop the target column
+# Remove hour column as this needs cyclical encoding
+num_cols = clean_df.select_dtypes(include=["number"]).drop(columns=["injury_severity", "hour"]).columns.tolist()
+
+# Scale num cols
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(clean_df[num_cols])
+scaled_df = pd.DataFrame(scaled_features, columns=[f"{col}_scaled" for col in num_cols], index=clean_df.index)
+
+# Concatenate with original DataFrame
+df_encoded = pd.concat([df_encoded, scaled_df], axis=1)
+
+# Remove original columns
+df_encoded.drop(columns=['num_lanes', 'speed_limit', 'users_involved'], inplace=True)
+
+# Cyclical encoding for hour
+df_encoded["hour_sin"] = np.sin(2 * np.pi * df_encoded["hour"]/24)
+df_encoded["hour_cos"] = np.cos(2 * np.pi * df_encoded["hour"]/24)
+
+
+# ------------------------------------------------------
+# 11C. RE_ARRANGE COLUMNS
+# ------------------------------------------------------
+df_encoded.insert(2, "latitude", df_encoded.pop("latitude"))
+df_encoded.insert(3, "longitude", df_encoded.pop("longitude"))
+df_encoded.insert(4, "injury_severity", df_encoded.pop("injury_severity"))
+df_encoded.insert(5, "hour_sin", df_encoded.pop("hour_sin"))
+df_encoded.insert(6, "hour_cos", df_encoded.pop("hour_cos"))
+df_encoded.insert(7, "num_lanes_scaled", df_encoded.pop("num_lanes_scaled"))
+df_encoded.insert(8, "speed_limit_scaled", df_encoded.pop("speed_limit_scaled"))
+df_encoded.insert(9, "users_involved_scaled", df_encoded.pop("users_involved_scaled"))
+df_encoded.insert(10, "latitude_scaled", df_encoded.pop("latitude_scaled"))
+df_encoded.insert(11, "longitude_scaled", df_encoded.pop("longitude_scaled"))
+
+print(f"Encoded and scaled columns. "
+      f"Dataset: {df_encoded.shape[0]:,} rows × {df_encoded.shape[1]} columns")
