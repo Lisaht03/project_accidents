@@ -560,6 +560,8 @@ print(f'Unique count of `accident_number`: {len(df.accident_number.unique())}')
 
 assert len(df) == len(df.accident_number.unique()), "There are duplicate accident_number"
 
+df.to_csv('../data/agg_df.csv', index=False)
+
 
 # ------------------------------------------------------
 # 11A. ENCODE CAT COLS
@@ -617,3 +619,5 @@ df_encoded.insert(11, "longitude_scaled", df_encoded.pop("longitude_scaled"))
 
 print(f"Encoded and scaled columns. "
       f"Dataset: {df_encoded.shape[0]:,} rows × {df_encoded.shape[1]} columns")
+
+df_encoded.to_csv('../data/encoded_df.csv', index=False)
