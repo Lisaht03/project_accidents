@@ -1,5 +1,7 @@
+test_files/
 raw_data/
 data/
+notebooks/
 .env
 .envrc
 .env.yaml
